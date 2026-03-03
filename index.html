@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Anne Frank Diary visualizer</title>
+<style>
+    body {
+        font-family: monospace;
+        padding: 20px;
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        max-width: 150px;
+        margin: auto;
+    }
+
+    .day-header {
+        position: sticky;
+        top: 20px;
+        text-align: center;
+        padding: 5px 5px 5px 0;
+        transform: rotate(-60deg);
+        width: 1px;
+        z-index: 99999;
+    }
+
+    .day {
+        height: 18px;
+        width: 18px;
+        background-color: #eee;
+        position: relative;
+    }
+
+    .day:hover::after {
+        content: attr(data-date) " (" attr(data-count) ")";
+        position: absolute;
+        bottom: 20px;
+        left: 0;
+        background: black;
+        color: white;
+        padding: 3px 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+
+    .legend {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .legend span {
+        display: inline-block;
+        width: 40px;
+        height: 15px;
+        margin: 0 2px;
+    }
+    .days-header {
+      background-color: white;
+        position: sticky;
+       top: 0px;
+        z-index: 1000;
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(0deg,rgba(42, 123, 155, 0) 0%, rgba(255, 255, 255, 0.8) 25%, rgba(255, 255, 255, 1) 50%);
+    }
+</style>
+</head>
+<body>
+
+<h2>Anne Frank Diary visualiser</h2>
+
+<p>
+  
+  Some other interesting facts:
+  <ul>
+    <li>She wrote 78,212 words.</li>
+    <li>The most she wrote in a day was XYZ.</li>
+    <li>The highest streak she got was 5 days.</li>
+    <li>XYZ was the most frequent day she would write on.</li>
+    <li>She wrote 164 different times.</li>  
+  </ul>
+</p>
+
+<div class="calendar days-header">
+  <div class="day-header">Mon</div>
+  <div class="day-header">Tue</div>
+  <div class="day-header">Wed</div>
+  <div class="day-header">Thu</div>
+  <div class="day-header">Fri</div>
+  <div class="day-header">Sat</div>
+  <div class="day-header">Sun</div>
+</div>
+<div class="calendar" id="calendar"></div>
+
+<div class="legend" id="legend"></div>
+
+<script>
+
+fetch('./pearllogs.json')   // relative path
+  .then(response => {
+      if (!response.ok) {
+          throw new Error("Failed to load JSON");
+      }
+      return response.json();
+  })
+  .then(data => {
+      generateHeatmap(data);
+  })
+  .catch(error => {
+      console.error("Error loading data:", error);
+  });
+
+
+function generateHeatmap(data) {
+
+    const dataMap = {};
+    let maxCount = 0;
+
+    data.forEach(entry => {
+        const [day, month, year] = entry.date.split('/');
+        const isoDate = `${year}-${month}-${day}`;
+        const count = parseInt(entry.count);
+
+        if (dataMap[isoDate] !== undefined) {
+          dataMap[isoDate] = dataMap[isoDate] + count;
+        } else {
+          dataMap[isoDate] = count;
+        }
+
+        if (count > maxCount) maxCount = count;
+    });
+
+    const startDate = new Date("1942-06-14");
+    const endDate = new Date("1944-08-02");
+
+    const calendar = document.getElementById("calendar");
+
+    function getColor(value) {
+        if (!value) return "#f0f0f0";
+        const intensity = (1 - (value / maxCount)) * 100;
+        // const green = Math.floor(255 - intensity * 200);
+        return `hsl(145, 60%, ${intensity}%)`;
+    }
+
+    let current = new Date(startDate);
+
+    // Pad first week
+    for (let i = 0; i < 6; i++) {
+        calendar.appendChild(document.createElement("div"));
+    }
+
+    while (current <= endDate) {
+        const iso = current.toISOString().split("T")[0];
+        const count = dataMap[iso] || 0;
+
+        const div = document.createElement("div");
+        div.className = "day";
+        div.style.backgroundColor = getColor(count);
+        div.setAttribute("data-date", iso);
+        div.setAttribute("data-count", count);
+
+        calendar.appendChild(div);
+        current.setDate(current.getDate() + 1);
+    }
+}
+</script>
+
+</body>
+</html>
