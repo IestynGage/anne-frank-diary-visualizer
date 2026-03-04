@@ -95,14 +95,14 @@
   Some other interesting facts is that:
   <br/>
   <br/>
-  <ul style="margin: auto;max-width: 26em;">
-    <li>She wrote 78,212 words.</li>
-    <li>The most she wrote in a day was 2,941.</li>
-    <li>The highest streak she got was 5 days.</li>
-    <li>Friday was the most frequent day she diaried.</li>
-    <li>She put 164 entries into her diary.</li>  
-  </ul>
 </p>
+<ul style="margin: auto;max-width: 26em;">
+  <li>She wrote 78,212 words.</li>
+  <li>The most she wrote in a day was 2,941.</li>
+  <li>The highest streak she got was 5 days.</li>
+  <li>Friday was the most frequent day she diaried.</li>
+  <li>She put 164 entries into her diary.</li>  
+</ul>
 
 <div class="calendar days-header">
   <div class="day-header">Mon</div>
@@ -203,10 +203,10 @@ function generateHeatmap(data) {
     const calendar = document.getElementById("calendar");
 
     function getColor(value) {
-        if (!value) return "#f0f0f0";
-        const intensity = ((1 - (value / (maxCount))) * 100);
-        // const green = Math.floor(255 - intensity * 200);
-        return `hsl(145, 60%, clamp(20%, ${intensity}%, 90%)`;
+      if (!value) return "#f0f0f0";
+      const ratio = value / maxCount;
+      const lightness = 90 - ratio * 50; // 90% → 40%
+      return `hsl(145, 60%, ${lightness}%)`;
     }
 
     let current = new Date(startDate);
