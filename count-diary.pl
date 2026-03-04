@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use utf8;
 use Data::Dumper;
-# Replace 'input.txt' with your file name
+
 my $filename = shift or die "Usage: perl count_words.pl filename\n";
 
 sub convert_date {
