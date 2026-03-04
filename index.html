@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anne Frank Diary visualizer</title>
 <style>
+
+  :root{
+    --paper: rgb(255, 254, 248);
+  }
     body {
         font-family: monospace;
-        padding: 20px;
+        background-color: var(--paper);
     }
 
     h2 {
@@ -34,8 +39,9 @@
     .day {
         height: 18px;
         width: 18px;
-        background-color: #eee;
+        background-color: #e3e3e3;
         position: relative;
+        border-radius: 3px;
     }
 
     .day:hover::after {
@@ -62,30 +68,39 @@
         height: 15px;
         margin: 0 2px;
     }
+    .new-month {
+      position: relative;
+      width: 200px;
+    }
     .days-header {
-      background-color: white;
+      background-color: var(--paper);
         position: sticky;
        top: 0px;
         z-index: 1000;
         width: 100%;
         padding: 20px;
-        background: linear-gradient(0deg,rgba(42, 123, 155, 0) 0%, rgba(255, 255, 255, 0.8) 25%, rgba(255, 255, 255, 1) 50%);
+        background: linear-gradient(0deg,rgba(255, 254, 248, 0) 0%, rgba(255, 254, 248, 0.8) 25%, rgba(255, 254, 245, 1) 50%);
     }
 </style>
 </head>
 <body>
 
-<h2>Anne Frank Diary visualiser</h2>
+<h2>The diary of Anne Frank</h2>
 
-<p>
+<p style="max-width: 50em;margin: auto;">
   
-  Some other interesting facts:
-  <ul>
+  If you've read Anne Frank's diary,
+  you might recall they are some large gaps between some entries.
+  This page visualize her entries.
+  Some other interesting facts is that:
+  <br/>
+  <br/>
+  <ul style="margin: auto;max-width: 26em;">
     <li>She wrote 78,212 words.</li>
-    <li>The most she wrote in a day was XYZ.</li>
+    <li>The most she wrote in a day was 2,941.</li>
     <li>The highest streak she got was 5 days.</li>
-    <li>XYZ was the most frequent day she would write on.</li>
-    <li>She wrote 164 different times.</li>  
+    <li>Friday was the most frequent day she diaried.</li>
+    <li>She put 164 entries into her diary.</li>  
   </ul>
 </p>
 
@@ -119,6 +134,49 @@ fetch('./pearllogs.json')   // relative path
   });
 
 
+  function getFormattedDate(date) {
+    let year = date.getFullYear();
+    let month = (1 + date.getMonth()).toString().padStart(2, '0');
+    let day = date.getDate().toString().padStart(2, '0');
+    
+    return `${day}/${month}/${year}`;
+  }
+
+  function getMonth(date) {
+    const month = (1 + date.getMonth()).toString();
+    switch (month) {
+      case "1": 
+        return `Jan ${date.getFullYear()}`;
+      case "2": 
+        return "Feb";
+      case "3": 
+        return "Mar";
+      case "4": 
+        return "Apr";
+      case "5": 
+        return "May";
+      case "6": 
+        return "Jun";
+      case "7": 
+        return "Jul";
+      case "8": 
+        return "Aug";
+      case "9": 
+        return "Sep";
+      case "10": 
+        return "Oct";
+      case "11": 
+        return "Nov";
+      case "12": 
+        return "Dec";
+    }
+  }
+
+  function days_passed(first, second) { 
+    // return Math.floor((newDate - startDate) / (1000 * 60 * 60 * 24)); 
+    return Math.round((second - first) / (1000 * 60 * 60 * 24));
+  }
+
 function generateHeatmap(data) {
 
     const dataMap = {};
@@ -138,6 +196,7 @@ function generateHeatmap(data) {
         if (count > maxCount) maxCount = count;
     });
 
+    
     const startDate = new Date("1942-06-14");
     const endDate = new Date("1944-08-02");
 
@@ -145,9 +204,9 @@ function generateHeatmap(data) {
 
     function getColor(value) {
         if (!value) return "#f0f0f0";
-        const intensity = (1 - (value / maxCount)) * 100;
+        const intensity = ((1 - (value / (maxCount))) * 100);
         // const green = Math.floor(255 - intensity * 200);
-        return `hsl(145, 60%, ${intensity}%)`;
+        return `hsl(145, 60%, clamp(20%, ${intensity}%, 90%)`;
     }
 
     let current = new Date(startDate);
@@ -163,15 +222,33 @@ function generateHeatmap(data) {
 
         const div = document.createElement("div");
         div.className = "day";
-        div.style.backgroundColor = getColor(count);
-        div.setAttribute("data-date", iso);
+        const color = getColor(count);
+        div.style.backgroundColor = color;
+        div.setAttribute("data-date", getFormattedDate(current));
         div.setAttribute("data-count", count);
 
+        if (current.getDate().toString().padStart(2, '0') === '01') {
+          // div.style.border = "solid black 1px";
+          const newMonthDiv = document.createElement("div");
+          newMonthDiv.className = "new-month";
+          newMonthDiv.innerText = getMonth(current);
+          console.log("startDate", (current));
+          const weekNumber = (days_passed(startDate, current)) % 7;
+          if (weekNumber === 0) {
+            newMonthDiv.style.left = `${18 + 5}px`;
+          }
+          else {
+            const daysToSkip = 8 - (weekNumber);
+            newMonthDiv.style.left = `${daysToSkip * (18 + 5)}px`;
+          }
+          div.appendChild(newMonthDiv);
+        }
         calendar.appendChild(div);
+
         current.setDate(current.getDate() + 1);
     }
 }
-</script>
+</script> 
 
 </body>
 </html>
